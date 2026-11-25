@@ -111,6 +111,7 @@ function render() {
   if (VIEW.name === 'report') return renderReport();
   if (VIEW.name === 'words') return renderWords();
   if (VIEW.name === 'notes') return renderNotes();
+  if (VIEW.name === 'howto') return renderHowto();
 }
 
 function renderHome() {
@@ -137,7 +138,8 @@ function renderHome() {
   const big = h('section', { class: 'big-acts' });
   const mt = h('button', { class: 'action', onclick: startMock }, `<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="31" r="21" style="fill:var(--grape)"/><circle cx="28" cy="31" r="16" style="fill:var(--card)"/><rect x="25" y="4" width="6" height="8" rx="2" style="fill:var(--grape)"/><path d="M28 31 L28 20 M28 31 L36 35" style="stroke:var(--ink)" stroke-width="3" stroke-linecap="round"/></svg><div><h3>${SUBJ_NAME[subj]} mock test</h3><p>About 20 mixed questions, timed, no hints</p></div>`);
   const fx = h('button', { class: 'action', onclick: startMistakes, disabled: false }, `<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24" style="fill:var(--berry)"/><path d="M17 29 L25 37 L40 20" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div><h3>Fix my mistakes</h3><p>${mistakes ? `${mistakes} worksheet question${mistakes > 1 ? 's' : ''} to fix, plus practice on weak spots` : 'Nothing left to fix. Practise your weakest skills'}</p></div>`);
-  big.append(mt, fx);
+  const ht = h('button', { class: 'action', onclick: () => go({ name: 'howto', subj }) }, `<svg viewBox="0 0 56 56" aria-hidden="true"><rect x="10" y="6" width="36" height="44" rx="6" style="fill:var(--mint)"/><path d="M18 20 H38 M18 29 H38 M18 38 H30" style="stroke:var(--card)" stroke-width="4" stroke-linecap="round"/></svg><div><h3>Cách làm bài</h3><p>Từng dạng câu hỏi: đề bảo gì, làm thế nào, bẫy hay gặp</p></div>`);
+  big.append(ht, mt, fx);
   frag.append(big);
   const foot = h('div', { class: 'foot' });
   foot.append(h('button', { class: 'link', onclick: () => go({ name: 'report' }) }, 'Progress report'));
@@ -529,6 +531,22 @@ function renderWords() {
   });
   shell(box);
 }
+// ---------- how to answer each kind of question ----------
+function renderHowto() {
+  const subj = VIEW.subj || SUBJ(); const H = HOWTO[subj];
+  const box = h('section', { class: 'report howto' });
+  box.append(h('div', { class: 'hello' }, `<h1>Cách làm bài · ${SUBJ_NAME[subj]}</h1><p>Đọc từ ra lệnh trước, rồi làm theo các bước.</p>`));
+  const qa = h('div', { class: 'qacts' }); qa.append(h('button', { class: 'btn big', onclick: () => startHowto(subj) }, 'Luyện nhanh (8 câu)')); box.append(qa);
+  box.append(h('div', { class: 'rt' }, `<h3>Từ ra lệnh trong đề</h3>${tableHtml(['Đề viết', 'Nghĩa', 'Em cần làm', 'Ví dụ trong đề'], H.words.map(([en, vi, what, ex]) => [`<b>${en}</b>`, vi, what, `<i>${ex}</i>`]))}`));
+  const grid = h('div', { class: 'howto-grid' });
+  H.cards.forEach((c) => grid.append(h('div', { class: 'rt hcard' }, `<h3>${c.h}</h3><div class="figwrap">${hpic[c.pic]()}</div><ol>${c.steps.map((x) => `<li>${x}</li>`).join('')}</ol><p class="hex"><b>Ví dụ:</b> ${c.ex}</p><p class="htrap"><b>Bẫy:</b> ${c.trap}</p>`)));
+  box.append(grid);
+  const qa2 = h('div', { class: 'qacts' }); qa2.append(h('button', { class: 'btn big', onclick: () => startHowto(subj) }, 'Luyện nhanh (8 câu)')); box.append(qa2);
+  const back = h('div', { class: 'foot' }); back.append(h('button', { class: 'link', onclick: () => go({ name: 'home' }) }, 'Back to jars')); box.append(back);
+  shell(box);
+}
+function startHowto(subj) { startQuiz({ title: 'Cách làm bài · ' + SUBJ_NAME[subj], mode: 'learn', qs: R.shuffle(HOWTO[subj].quiz).slice(0, 8).map((it) => howtoQuestion(subj, it)) }); }
+
 // ---------- science exam notes ----------
 function renderNotes() {
   const t = VIEW.t; const tp = topicOf(t); const n = SCI_NOTES[t];

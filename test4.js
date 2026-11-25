@@ -1,6 +1,6 @@
 // Science self-test: every worksheet question and practice template must accept its own example answer.
 const fs = require('fs'), vm = require('vm'); const ctx = { console }; vm.createContext(ctx);
-const src = ['logic', 'words', 'vi', 'gen', 'science'].map((f) => fs.readFileSync('src/' + f + '.js', 'utf8').replace(/if \(typeof module[^\n]*\n?/g, '')).join('\n') + '\n;this.out={ORIG,TOPICS,SKILLS,GEN,SCI_TPL,SCI_NOTES,grade,exampleResp,glossify,wordsOf,wordQuestion,clozeQuestion,howTo,txtMatch};';
+const src = ['logic', 'words', 'vi', 'gen', 'science', 'howto'].map((f) => fs.readFileSync('src/' + f + '.js', 'utf8').replace(/if \(typeof module[^\n]*\n?/g, '')).join('\n') + '\n;this.out={ORIG,TOPICS,SKILLS,GEN,SCI_TPL,SCI_NOTES,grade,exampleResp,glossify,wordsOf,wordQuestion,clozeQuestion,howTo,txtMatch,HOWTO,hpic,howtoQuestion};';
 vm.runInContext(src, ctx); const L = ctx.out; let bad = 0, n = 0;
 const issues = (q) => {
   const e = [];
@@ -37,6 +37,8 @@ neg.forEach(([id, r]) => { const q = L.ORIG.find((x) => x.id === id); if (L.grad
 const ws = L.wordsOf('sci'); for (const w of ws) for (let i = 0; i < 20; i++) { const q = L.wordQuestion(w); if (!L.grade(q, L.exampleResp(q)) || new Set(q.opts).size !== q.opts.length || q.t !== 10) { bad++; console.log('wordq', w.id, q.opts); break; } }
 for (let i = 0; i < 200; i++) { const q = L.clozeQuestion('sci'); if (!L.grade(q, L.exampleResp(q))) { bad++; console.log('cloze'); break; } }
 if (L.wordsOf('math').some((w) => w.subj)) { bad++; console.log('maths words polluted'); }
+for (const subj of ['math', 'sci']) { const H = L.HOWTO[subj]; H.cards.forEach((c) => { if (!L.hpic[c.pic]) { bad++; console.log('no pic', c.pic); } else if (/NaN|undefined/.test(L.hpic[c.pic]())) { bad++; console.log('pic NaN', c.pic); } });
+  H.quiz.forEach((it) => { const q = L.howtoQuestion(subj, it); if (!L.grade(q, L.exampleResp(q)) || new Set(q.opts).size !== q.opts.length || !L.SKILLS[q.sk]) { bad++; console.log('howto quiz', it[0]); } }); }
 const byT = {}; sci.forEach((q) => (byT[q.t] = (byT[q.t] || 0) + 1));
 console.log('science orig', sci.length, byT, 'checked', n, 'sci words', ws.length, 'bad', bad);
 process.exitCode = bad ? 1 : 0;

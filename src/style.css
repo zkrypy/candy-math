@@ -242,3 +242,9 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 3
 .figwrap ul { margin: 0; padding-left: 22px; font-size: 17px; line-height: 1.6; }
 .opt svg.chart { max-height: none; width: 100%; height: auto; }
 .opts:has(svg.chart) { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.howto-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.hcard { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.hcard ol { margin: 0; padding-left: 22px; line-height: 1.5; }
+.hcard p { margin: 0; font-size: 15px; line-height: 1.45; }
+.hcard .htrap { color: var(--bad); }
+.howto .tbl td { text-align: left; font-size: 15px; }
