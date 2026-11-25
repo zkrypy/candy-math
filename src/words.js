@@ -142,17 +142,120 @@ const WORDS = [
   { id: 'prism', re: 'prisms?', en: 'prism', vi: 'hình lăng trụ', ex: '', cat: 'solid', pic: () => SOLIDS.prism() },
   { id: 'shape3d', re: '3D shapes?', en: '3D shape', vi: 'hình khối (có chiều dày)', ex: 'cube, cylinder, sphere', cat: 'solid' },
 ];
+// ---- science words (subj: 'sci'); ids start with "sc" so they never clash with maths words ----
+// particle boxes used by the science questions and the word pictures
+function particles(kind, cls = 'opt') {
+  let c = '';
+  const dot = (x, y) => `<circle class="shade" cx="${x}" cy="${y}" r="7"/>`;
+  if (kind === 'solid') { for (let r = 0; r < 3; r++) for (let i = 0; i < 6; i++) c += dot(17 + i * 14, 69 - r * 14); }
+  else if (kind === 'liquid') { [[16, 70], [30, 68], [45, 70], [59, 67], [74, 70], [88, 69], [22, 56], [37, 55], [52, 54], [67, 56], [82, 55], [29, 42], [60, 41], [44, 42]].forEach(([x, y]) => (c += dot(x, y))); }
+  else { [[18, 20], [62, 14], [86, 40], [40, 46], [20, 68], [70, 66]].forEach(([x, y]) => (c += dot(x, y))); }
+  return svg(104, 84, `<rect class="paper" x="2" y="2" width="100" height="80"/>${c}`, cls);
+}
+const SCI_WORDS = [
+  // plants
+  { id: 'scgerm', re: 'germinat\\w*', en: 'germination', vi: 'sự nảy mầm (hạt bắt đầu mọc)', ex: 'Seeds need water, air and warmth to germinate.', cat: 'plant' },
+  { id: 'scseedling', re: 'seedlings?', en: 'seedling', vi: 'cây con (cây non mới mọc từ hạt)', ex: '', cat: 'plant' },
+  { id: 'scshoot', re: 'shoots?', en: 'shoot', vi: 'chồi (phần mọc lên trên)', ex: 'Shoots grow up towards the light.', cat: 'plant' },
+  { id: 'scroot', re: 'roots?', en: 'root', vi: 'rễ (phần mọc xuống đất)', ex: 'Roots grow down.', cat: 'plant' },
+  { id: 'scpollination', re: 'pollinat\\w*', en: 'pollination', vi: 'sự thụ phấn: hạt phấn đi từ bao phấn (anther) sang đầu nhụy (stigma)', ex: 'A to S: Anther to Stigma.', cat: 'plant' },
+  { id: 'scpollen', re: 'pollen', en: 'pollen', vi: 'hạt phấn hoa', ex: '', cat: 'plant' },
+  { id: 'scfert', re: 'fertilis\\w*', en: 'fertilisation', vi: 'sự thụ tinh: tế bào đực trong hạt phấn kết hợp với tế bào trứng trong noãn', ex: 'Pollination moves pollen. Fertilisation joins cells.', cat: 'plant' },
+  { id: 'scovule', re: 'ovules?', en: 'ovule', vi: 'noãn (sau này thành hạt)', ex: '', cat: 'plant' },
+  { id: 'scovary', re: 'ovary|ovaries', en: 'ovary', vi: 'bầu nhụy (chứa noãn, sau này thành quả)', ex: '', cat: 'plant' },
+  { id: 'scstigma', re: 'stigmas?', en: 'stigma', vi: 'đầu nhụy (phần dính, giữ hạt phấn)', ex: '', cat: 'plant' },
+  { id: 'scstyle', re: 'style', en: 'style', vi: 'vòi nhụy (ống dẫn phấn xuống bầu nhụy)', ex: '', cat: 'plant' },
+  { id: 'sccarpel', re: 'carpels?', en: 'carpel', vi: 'nhụy hoa, bộ phận CÁI (gồm đầu nhụy, vòi nhụy, bầu nhụy)', ex: '', cat: 'plant' },
+  { id: 'scstamen', re: 'stamens?', en: 'stamen', vi: 'nhị hoa, bộ phận ĐỰC (gồm bao phấn và chỉ nhị)', ex: 'Sta-MEN: male part.', cat: 'plant' },
+  { id: 'scanther', re: 'anthers?', en: 'anther', vi: 'bao phấn (làm ra hạt phấn)', ex: '', cat: 'plant' },
+  { id: 'scfilament', re: 'filaments?', en: 'filament', vi: 'chỉ nhị (cuống giữ bao phấn)', ex: '', cat: 'plant' },
+  { id: 'scpetal', re: 'petals?', en: 'petal', vi: 'cánh hoa (thu hút côn trùng)', ex: '', cat: 'plant' },
+  { id: 'scsepal', re: 'sepals?', en: 'sepal', vi: 'lá đài (bảo vệ nụ hoa)', ex: '', cat: 'plant' },
+  { id: 'scnectar', re: 'nectar', en: 'nectar', vi: 'mật hoa', ex: '', cat: 'plant' },
+  { id: 'scscent', re: 'scent|sweet smell', en: 'scent', vi: 'mùi thơm', ex: '', cat: 'plant' },
+  { id: 'scdispersal', re: 'dispers\\w*', en: 'seed dispersal', vi: 'sự phát tán hạt (đưa hạt đi xa cây mẹ)', ex: 'By wind, animals, water, explosion, drop and roll.', cat: 'plant' },
+  { id: 'scparent', re: 'parent plant', en: 'parent plant', vi: 'cây mẹ', ex: '', cat: 'plant' },
+  { id: 'sccompet', re: 'competition', en: 'competition', vi: 'sự cạnh tranh (giành ánh sáng, nước, chỗ)', ex: '', cat: 'plant' },
+  { id: 'sclifecycle', re: 'life cycles?', en: 'life cycle', vi: 'vòng đời', ex: '', cat: 'plant' },
+  { id: 'screpro', re: 'reproduction', en: 'reproduction', vi: 'sự sinh sản', ex: 'Plants have flowers for reproduction.', cat: 'plant' },
+  { id: 'scspores', re: 'spores?', en: 'spore', vi: 'bào tử (dương xỉ, rêu sinh sản bằng bào tử)', ex: '', cat: 'plant' },
+  { id: 'scconifer', re: 'conifers?|pine trees?', en: 'conifer', vi: 'cây lá kim (thông), có hạt trong nón, không có hoa', ex: '', cat: 'plant' },
+  { id: 'scalgae', re: 'algae', en: 'algae', vi: 'tảo', ex: '', cat: 'plant' },
+  { id: 'scmoss', re: 'moss(?:es)?', en: 'moss', vi: 'rêu', ex: '', cat: 'plant' },
+  { id: 'scfern', re: 'ferns?', en: 'fern', vi: 'cây dương xỉ', ex: '', cat: 'plant' },
+  // sound
+  { id: 'scvibrate', re: 'vibrat\\w*', en: 'vibrate', vi: 'rung (chuyển động qua lại thật nhanh)', ex: 'Sound starts when something vibrates.', cat: 'sound' },
+  { id: 'scsource', re: 'sound source', en: 'sound source', vi: 'nguồn âm (vật phát ra âm thanh)', ex: '', cat: 'sound' },
+  { id: 'scvolume', re: 'volume|loudness', en: 'volume', vi: 'độ to (to hay nhỏ)', ex: 'Bigger vibrations: louder.', cat: 'sound' },
+  { id: 'scpitch', re: 'pitch', en: 'pitch', vi: 'độ cao của âm (cao/trầm, bổng/trầm)', ex: 'Faster vibrations: higher pitch.', cat: 'sound' },
+  { id: 'scdb', re: 'decibels?|dB', en: 'decibel (dB)', vi: 'đơn vị đo độ to của âm', ex: '', cat: 'sound' },
+  { id: 'scmeter', re: 'sound level meter', en: 'sound level meter', vi: 'máy đo độ to của âm', ex: '', cat: 'sound' },
+  { id: 'scmuffle', re: 'muffl\\w*', en: 'muffle', vi: 'làm cho âm nhỏ đi', ex: '', cat: 'sound' },
+  { id: 'scnoise', re: 'noise pollution', en: 'noise pollution', vi: 'ô nhiễm tiếng ồn', ex: '', cat: 'sound' },
+  { id: 'scamp', re: 'amplifiers?', en: 'amplifier', vi: 'bộ khuếch đại (làm tín hiệu mạnh hơn)', ex: '', cat: 'sound' },
+  { id: 'scspeaker', re: 'loudspeakers?', en: 'loudspeaker', vi: 'loa', ex: '', cat: 'sound' },
+  { id: 'scmic', re: 'microphones?', en: 'microphone', vi: 'micrô (thu âm)', ex: '', cat: 'sound' },
+  { id: 'scaircol', re: 'air column', en: 'air column', vi: 'cột không khí (trong ống sáo, chai)', ex: 'Shorter air column: higher note.', cat: 'sound' },
+  { id: 'scstringed', re: 'stringed|strings?', en: 'string / stringed instrument', vi: 'dây đàn / nhạc cụ dây (guitar, violin, harp)', ex: '', cat: 'sound' },
+  { id: 'scwind', re: 'wind instruments?', en: 'wind instrument', vi: 'nhạc cụ hơi (thổi: sáo, kèn)', ex: '', cat: 'sound' },
+  { id: 'sctight', re: 'tighter|tighten\\w*|looser', en: 'tighter / looser', vi: 'căng hơn / chùng hơn', ex: '', cat: 'sound' },
+  // matter
+  { id: 'scsolid', re: 'solids?', en: 'solid', vi: 'chất rắn', ex: '', cat: 'matter', pic: () => particles('solid') },
+  { id: 'scliquid', re: 'liquids?', en: 'liquid', vi: 'chất lỏng', ex: '', cat: 'matter', pic: () => particles('liquid') },
+  { id: 'scgas', re: 'gas(?:es)?', en: 'gas', vi: 'chất khí', ex: '', cat: 'matter', pic: () => particles('gas') },
+  { id: 'scparticle', re: 'particles?', en: 'particle', vi: 'hạt (rất nhỏ, tạo nên mọi chất)', ex: '', cat: 'matter' },
+  { id: 'scmelt', re: 'melting point|melting|melts?', en: 'melting / melting point', vi: 'sự nóng chảy (rắn → lỏng) / nhiệt độ nóng chảy', ex: 'Ice melts at 0 °C.', cat: 'matter' },
+  { id: 'scfreeze', re: 'freez\\w*|froze', en: 'freezing', vi: 'sự đông đặc (lỏng → rắn)', ex: 'Pure water freezes at 0 °C.', cat: 'matter' },
+  { id: 'scboil', re: 'boiling point|boiling|boils?', en: 'boiling / boiling point', vi: 'sự sôi / nhiệt độ sôi (nhiệt độ chất lỏng biến thành khí)', ex: 'Pure water boils at 100 °C.', cat: 'matter' },
+  { id: 'scevap', re: 'evaporat\\w*', en: 'evaporation', vi: 'sự bay hơi (lỏng → khí)', ex: 'Hair dries because water evaporates.', cat: 'matter' },
+  { id: 'sccond', re: 'condens\\w*', en: 'condensation', vi: 'sự ngưng tụ (khí → lỏng), ngược với bay hơi', ex: '', cat: 'matter' },
+  { id: 'scvapour', re: 'water vapour|vapour', en: 'water vapour', vi: 'hơi nước (nước ở thể khí)', ex: '', cat: 'matter' },
+  { id: 'scprecip', re: 'precipitation', en: 'precipitation', vi: 'mưa, tuyết rơi xuống (giáng thủy)', ex: '', cat: 'matter' },
+  { id: 'scwcycle', re: 'water cycle', en: 'water cycle', vi: 'vòng tuần hoàn của nước', ex: '', cat: 'matter' },
+  { id: 'scdissolve', re: 'dissolv\\w*', en: 'dissolve', vi: 'hòa tan', ex: 'Salt dissolves in water.', cat: 'matter' },
+  { id: 'scsoluble', re: 'insoluble|soluble', en: 'soluble / insoluble', vi: 'tan được / không tan được', ex: 'Salt is soluble. Sand is insoluble.', cat: 'matter' },
+  { id: 'scsolute', re: 'solutes?', en: 'solute', vi: 'chất tan (chất rắn được hòa tan, ví dụ muối)', ex: '', cat: 'matter' },
+  { id: 'scsolvent', re: 'solvents?', en: 'solvent', vi: 'dung môi (chất lỏng hòa tan chất khác, ví dụ nước)', ex: '', cat: 'matter' },
+  { id: 'scsolution', re: 'solutions?', en: 'solution', vi: 'dung dịch (chất tan + dung môi, ví dụ nước muối)', ex: '', cat: 'matter' },
+  { id: 'scmixture', re: 'mixtures?', en: 'mixture', vi: 'hỗn hợp', ex: '', cat: 'matter' },
+  { id: 'screversible', re: 'reversible', en: 'reversible', vi: 'có thể đảo ngược (lấy lại chất ban đầu được)', ex: '', cat: 'matter' },
+  { id: 'scroomtemp', re: 'room temperature', en: 'room temperature', vi: 'nhiệt độ phòng (khoảng 20 °C)', ex: '', cat: 'matter' },
+  { id: 'scpure', re: 'pure', en: 'pure', vi: 'tinh khiết (không lẫn chất khác)', ex: '', cat: 'matter' },
+  { id: 'scpollution', re: 'pollution', en: 'pollution', vi: 'sự ô nhiễm', ex: '', cat: 'matter' },
+  // investigations
+  { id: 'scfair', re: 'fair test', en: 'fair test', vi: 'thí nghiệm công bằng: chỉ thay đổi MỘT thứ, giữ nguyên các thứ khác', ex: '', cat: 'enq' },
+  { id: 'scindep', re: 'independent(?: variable)?', en: 'independent variable', vi: 'biến độc lập: thứ em THAY ĐỔI', ex: '', cat: 'enq' },
+  { id: 'scdep', re: 'dependent(?: variable)?', en: 'dependent variable', vi: 'biến phụ thuộc: thứ em ĐO', ex: '', cat: 'enq' },
+  { id: 'sccontrol', re: 'control(?: variables?)?', en: 'control variable', vi: 'biến kiểm soát: thứ em GIỮ NGUYÊN', ex: '', cat: 'enq' },
+  { id: 'scvariable', re: 'variables?', en: 'variable', vi: 'biến (thứ có thể thay đổi trong thí nghiệm)', ex: '', cat: 'enq' },
+  { id: 'scpredict', re: 'predict\\w*', en: 'prediction', vi: 'dự đoán (đoán trước kết quả)', ex: '', cat: 'enq' },
+  { id: 'scconclusion', re: 'conclusions?', en: 'conclusion', vi: 'kết luận (nêu quy luật từ kết quả)', ex: '', cat: 'enq' },
+  { id: 'scinvest', re: 'investigat\\w*', en: 'investigate', vi: 'làm thí nghiệm tìm hiểu', ex: '', cat: 'enq' },
+  { id: 'scevidence', re: 'evidence', en: 'evidence', vi: 'bằng chứng (số liệu chứng minh)', ex: '', cat: 'enq' },
+  { id: 'screpeat', re: 'repeats?|reliable', en: 'repeat / reliable', vi: 'làm lại / đáng tin cậy', ex: '', cat: 'enq' },
+  { id: 'scrisk', re: 'risks?|minimise', en: 'risk / minimise', vi: 'nguy hiểm / giảm bớt', ex: '', cat: 'enq' },
+  { id: 'scequip', re: 'equipment', en: 'equipment', vi: 'dụng cụ', ex: '', cat: 'enq' },
+  { id: 'sccyl', re: 'measuring cylinder', en: 'measuring cylinder', vi: 'ống đong (đo thể tích chất lỏng)', ex: '', cat: 'enq' },
+  { id: 'scthermo', re: 'thermometers?', en: 'thermometer', vi: 'nhiệt kế', ex: '', cat: 'enq' },
+].map((w) => Object.assign(w, { subj: 'sci' }));
+WORDS.push(...SCI_WORDS);
 const WORD_BY_ID = Object.fromEntries(WORDS.map((w) => [w.id, w]));
-const CAT_VI = { cmd: 'Đề bảo em làm gì', op: 'Phép tính', num: 'Số', data: 'Số liệu', frac: 'Phân số', shape: 'Hình phẳng', solid: 'Hình khối' };
+const CAT_VI = { cmd: 'Đề bảo em làm gì', op: 'Phép tính', num: 'Số', data: 'Số liệu', frac: 'Phân số', shape: 'Hình phẳng', solid: 'Hình khối', plant: 'Plants · Thực vật', sound: 'Sound · Âm thanh', matter: 'Matter · Chất', enq: 'Thí nghiệm' };
+const wordsOf = (subj) => WORDS.filter((w) => (w.subj || 'math') === subj);
+const wordTopic = (subj) => (subj === 'sci' ? 10 : 6);
 
 // wrap glossary words in text (skip HTML tags and anything inside <svg> or <table>)
-const WORD_RE = new RegExp('\\b(' + WORDS.map((w) => `(?<${w.id}>${w.re})`).join('|') + ')\\b', 'gi');
-function glossify(html) {
+const mkRe = (list) => new RegExp('\\b(' + list.map((w) => `(?<${w.id}>${w.re})`).join('|') + ')\\b', 'gi');
+// maths questions: maths words only. Science questions: science words + the maths "command" words (tick, describe, explain...)
+const WORD_RE = mkRe(WORDS.filter((w) => (w.subj || 'math') === 'math'));
+const WORD_RE_SCI = mkRe([...WORDS.filter((w) => w.subj === 'sci'), ...WORDS.filter((w) => !w.subj && w.cat === 'cmd')]);
+function glossify(html, subj = 'math') {
+  const RE = subj === 'sci' ? WORD_RE_SCI : WORD_RE;
   const seen = new Set(); let depth = 0;
   return String(html).split(/(<[^>]+>)/).map((seg) => {
     if (seg.startsWith('<')) { if (/^<(svg|table)\b/i.test(seg)) depth++; else if (/^<\/(svg|table)>/i.test(seg)) depth--; return seg; }
     if (depth > 0) return seg;
-    return seg.replace(WORD_RE, (...args) => {
+    return seg.replace(RE, (...args) => {
       const groups = args[args.length - 1]; const id = Object.keys(groups).find((k) => groups[k] !== undefined);
       if (!id || seen.has(id)) return args[0]; seen.add(id);
       return `<span class="gw" role="button" tabindex="0" data-w="${id}">${args[0]}</span>`;
@@ -162,12 +265,15 @@ function glossify(html) {
 
 // ---- vocabulary quiz generator ----
 function wordQuestion(w) {
-  const others = (pool) => R.shuffle(pool.filter((x) => x.id !== w.id)).slice(0, 3);
-  const k = w.pic && R.int(0, 2) === 0 ? 2 : R.int(0, 1);
-  if (k === 0) { const o = R.shuffle([w, ...others(WORDS)]); return G(mcq({ t: 6, sk: 'words', word: w.id, q: `What does <b>${w.en}</b> mean?`, why: w.ex }, o.map((x) => x.vi), o.indexOf(w))); }
-  if (k === 1) { const o = R.shuffle([w, ...others(WORDS)]); return G(mcq({ t: 6, sk: 'words', word: w.id, q: `Which word means: <b>${w.vi}</b>?`, why: w.ex }, o.map((x) => x.en), o.indexOf(w))); }
-  const o = R.shuffle([w, ...others(WORDS.filter((x) => x.pic && x.cat === w.cat).length > 3 ? WORDS.filter((x) => x.pic && x.cat === w.cat && x.en !== w.en) : WORDS.filter((x) => x.pic))]);
-  return G(mcq({ t: 6, sk: 'words', word: w.id, fig: w.pic(), q: 'Which word matches the picture?', why: w.vi }, o.map((x) => x.en), o.indexOf(w)));
+  const subj = w.subj || 'math'; const pool = wordsOf(subj); const t = wordTopic(subj); const sk = subj === 'sci' ? 'swords' : 'words';
+  const others = (list) => R.shuffle(list.filter((x) => x.id !== w.id && x.en !== w.en && x.vi !== w.vi)).slice(0, 3);
+  const pics = pool.filter((x) => x.pic && x.en !== w.en);
+  const k = w.pic && pics.length >= 3 && R.int(0, 2) === 0 ? 2 : R.int(0, 1);
+  if (k === 0) { const o = R.shuffle([w, ...others(pool)]); return G(mcq({ t, sk, word: w.id, q: `What does <b>${w.en}</b> mean?`, why: w.ex }, o.map((x) => x.vi), o.indexOf(w))); }
+  if (k === 1) { const o = R.shuffle([w, ...others(pool)]); return G(mcq({ t, sk, word: w.id, q: `Which word means: <b>${w.vi}</b>?`, why: w.ex }, o.map((x) => x.en), o.indexOf(w))); }
+  const same = pics.filter((x) => x.cat === w.cat);
+  const o = R.shuffle([w, ...R.shuffle(same.length >= 3 ? same : pics).slice(0, 3)]);
+  return G(mcq({ t, sk, word: w.id, fig: w.pic(), q: 'Which word matches the picture?', why: w.vi }, o.map((x) => x.en), o.indexOf(w)));
 }
 // sentence fill-ins for command and operation words
 const CLOZE = [
@@ -198,9 +304,34 @@ const CLOZE = [
   ['Draw a ___ around the correct answer. (khoanh tròn)', ['ring', 'line', 'tick'], 0],
   ['Write a number Eva ___ choose. (có thể, nhiều đáp án)', ['could', 'must', 'did'], 0],
 ];
-function clozeQuestion() {
-  const [t, opts, a] = R.pick(CLOZE); const o = R.shuffle(opts);
-  return G(mcq({ t: 6, sk: 'words', q: t.replace('___', '<b>_____</b>'), why: `Answer: ${opts[a]}` }, o, o.indexOf(opts[a])));
+const SCLOZE = [
+  ['Pollen moves from the anther to the ___. (đầu nhụy)', ['stigma', 'ovary', 'petal'], 0],
+  ['The male part of a flower is the ___.', ['stamen', 'carpel', 'sepal'], 0],
+  ['The female part of a flower is the ___.', ['carpel', 'stamen', 'petal'], 0],
+  ['Moving seeds away from the parent plant is called seed ___.', ['dispersal', 'germination', 'fertilisation'], 0],
+  ['The start of growth of a seed is called ___.', ['germination', 'pollination', 'dispersal'], 0],
+  ['A fair test changes ___ thing and keeps the other things the same.', ['one', 'two', 'every'], 0],
+  ['The thing you measure is the ___ variable.', ['dependent', 'independent', 'control'], 0],
+  ['The thing you change is the ___ variable.', ['independent', 'dependent', 'control'], 0],
+  ['Sound is made when an object ___.', ['vibrates', 'evaporates', 'dissolves'], 0],
+  ['High and low describe the ___ of a sound.', ['pitch', 'volume', 'mass'], 0],
+  ['Loud and quiet describe the ___ of a sound.', ['volume', 'pitch', 'temperature'], 0],
+  ['Bigger vibrations make a ___ sound.', ['louder', 'higher', 'lower'], 0],
+  ['Faster vibrations make a ___ pitch.', ['higher', 'lower', 'louder'], 0],
+  ['A tighter string makes a ___ note.', ['higher', 'lower', 'quieter'], 0],
+  ['Water turning into water vapour is called ___.', ['evaporation', 'condensation', 'freezing'], 0],
+  ['Water vapour turning back into water is called ___.', ['condensation', 'evaporation', 'melting'], 0],
+  ['A solid turning into a liquid is called ___.', ['melting', 'freezing', 'boiling'], 0],
+  ['Salt dissolves in water. The salt is the ___.', ['solute', 'solvent', 'solution'], 0],
+  ['Salt dissolves in water. The water is the ___.', ['solvent', 'solute', 'mixture'], 0],
+  ['Salt water is a ___.', ['solution', 'solvent', 'solute'], 0],
+  ['Sand does not dissolve in water. Sand is ___.', ['insoluble', 'soluble', 'a solvent'], 0],
+  ['Pure water boils at ___ °C.', ['100', '0', '110'], 0],
+  ['Pure water freezes at ___ °C.', ['0', '100', '10'], 0],
+];
+function clozeQuestion(subj = 'math') {
+  const sci = subj === 'sci'; const [t, opts, a] = R.pick(sci ? SCLOZE : CLOZE); const o = R.shuffle(opts);
+  return G(mcq({ t: sci ? 10 : 6, sk: sci ? 'swords' : 'words', q: t.replace('___', '<b>_____</b>'), why: `Answer: ${opts[a]}` }, o, o.indexOf(opts[a])));
 }
 
-if (typeof module !== 'undefined') module.exports = Object.assign(module.exports || {}, { WORDS, glossify, wordQuestion, clozeQuestion, WORD_RE });
+if (typeof module !== 'undefined') module.exports = Object.assign(module.exports || {}, { WORDS, glossify, wordQuestion, clozeQuestion, WORD_RE, wordsOf, particles });

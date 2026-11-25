@@ -230,3 +230,15 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 3
 .wchip { border: 2px solid var(--line); background: var(--bg); border-radius: 999px; padding: 6px 14px; font-weight: 800; }
 .wchip.known { border-color: var(--good); background: var(--good-bg); }
 .wchip.weak { border-color: var(--bad); background: var(--bad-bg); }
+
+/* subject tabs + science notes */
+.subj-tabs { display: inline-flex; gap: 6px; margin-top: 16px; padding: 5px; border-radius: 999px; background: var(--card); border: 2px solid var(--line); }
+.subj-tab { border: 0; background: transparent; color: var(--ink); font: 800 17px var(--font-body); padding: 8px 20px; border-radius: 999px; cursor: pointer; }
+.subj-tab.on { background: var(--accent); color: var(--accent-ink); }
+.subj-head { margin: 18px 0 4px; font-size: 24px; }
+.ans.txt { text-align: left; font-variant-numeric: normal; }
+.rt.note p { margin: 0 0 8px; line-height: 1.55; font-size: 17px; }
+.rt.note .note-vi { color: var(--muted); border-left: 4px solid var(--line); padding-left: 10px; margin: 10px 0 0; }
+.figwrap ul { margin: 0; padding-left: 22px; font-size: 17px; line-height: 1.6; }
+.opt svg.chart { max-height: none; width: 100%; height: auto; }
+.opts:has(svg.chart) { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }

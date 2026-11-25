@@ -1,14 +1,21 @@
 // ===== Candy Math: UI =====
 const $ = (s, el = document) => el.querySelector(s);
 const h = (tag, attrs = {}, html = '') => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v); } if (html) e.innerHTML = html; return e; };
-const TC = { 1: 'var(--lemon)', 2: 'var(--mint)', 3: 'var(--berry)', 4: 'var(--grape)', 5: 'var(--peach)', 6: 'var(--sky)' };
-TOPICS.push({ id: 6, name: 'Maths Words', sheet: 'Vocabulary', candy: 'Sky jellies', color: 'sky' });
+const TC = { 1: 'var(--lemon)', 2: 'var(--mint)', 3: 'var(--berry)', 4: 'var(--grape)', 5: 'var(--peach)', 6: 'var(--sky)', 7: 'var(--mint)', 8: 'var(--grape)', 9: 'var(--sky)', 10: 'var(--lemon)' };
+TOPICS.push({ id: 6, subj: 'math', words: true, name: 'Maths Words', sheet: 'Vocabulary', candy: 'Sky jellies', color: 'sky' });
+TOPICS.push({ id: 10, subj: 'sci', words: true, lid: 'W', name: 'Science Words', sheet: 'Vocabulary', candy: 'Lemon fizz', color: 'lemon' });
 SKILLS.words = { t: 6, en: 'Maths words', vi: 'Chạm vào chữ gạch chân trong đề để xem nghĩa tiếng Việt.' };
+SKILLS.swords = { t: 10, en: 'Science words', vi: 'Chạm vào chữ gạch chân trong đề để xem nghĩa tiếng Việt.' };
+const topicOf = (t) => TOPICS.find((tp) => tp.id === t) || TOPICS[0];
+const subjOf = (t) => topicOf(t).subj || 'math';
+const isWordT = (t) => !!topicOf(t).words;
+const SUBJ_NAME = { math: 'Maths', sci: 'Science' };
 const coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
 
 // ---------- progress store (localStorage now, cloud db when available) ----------
 const LS = 'candy-math-v1';
-const blank = () => ({ v: 1, upd: 0, q: {}, sk: {}, w: {}, look: {}, candies: 0, tests: [] });
+const blank = () => ({ v: 1, upd: 0, q: {}, sk: {}, w: {}, look: {}, candies: 0, tests: [], subj: 'math' });
+const SUBJ = () => DATA.subj || 'math';
 let DATA = blank();
 try { const s = localStorage.getItem(LS); if (s) DATA = Object.assign(blank(), JSON.parse(s)); } catch (e) {}
 let cloud = null, cloudBusy = false, cloudDirty = false, cloudTimer = null;
@@ -55,9 +62,9 @@ function record(q, ok) {
   save();
 }
 const isMistake = (q) => { const s = DATA.q[q.id]; return s ? s.last === 0 : !!q.paper; };
-const mastery = (t) => { if (t === 6) return WORDS.filter((w) => DATA.w[w.id] && DATA.w[w.id].last === 1).length / WORDS.length; const qs = ORIG.filter((q) => q.t === t); return qs.filter((q) => DATA.q[q.id] && DATA.q[q.id].last === 1).length / qs.length; };
+const mastery = (t) => { if (isWordT(t)) { const ws = wordsOf(subjOf(t)); return ws.filter((w) => DATA.w[w.id] && DATA.w[w.id].last === 1).length / ws.length; } const qs = ORIG.filter((q) => q.t === t); return qs.filter((q) => DATA.q[q.id] && DATA.q[q.id].last === 1).length / qs.length; };
 function weakSkills(t) {
-  const list = Object.keys(SKILLS).filter((s) => (t ? SKILLS[s].t === t : true) && GEN[s]);
+  const list = Object.keys(SKILLS).filter((s) => (t ? SKILLS[s].t === t : subjOf(SKILLS[s].t) === SUBJ()) && GEN[s]);
   return list.map((s) => { const k = DATA.sk[s] || { r: 0, w: 0 }; const paperW = ORIG.filter((q) => q.sk === s && isMistake(q)).length; return { s, w: (k.w + 1 + paperW) / (k.r + 1) }; });
 }
 function pickWeighted(items) { const tot = items.reduce((a, b) => a + b.w, 0); let r = Math.random() * tot; for (const it of items) { r -= it.w; if (r <= 0) return it.s; } return items[items.length - 1].s; }
@@ -81,7 +88,7 @@ function jarSvg(t, frac) {
     <clipPath id="jc${t}"><path d="M30 30 C14 34 10 44 10 58 L10 118 C10 130 18 136 30 136 L90 136 C102 136 110 130 110 118 L110 58 C110 44 106 34 90 30 Z"/></clipPath>
     <g clip-path="url(#jc${t})">${candies}</g>
     <path d="M20 56 C20 48 24 42 30 40" stroke="#fff" stroke-width="4" fill="none" opacity="0.6" stroke-linecap="round"/>
-    <text x="60" y="18" text-anchor="middle" font-family="var(--font-display)" font-size="11" font-weight="700" fill="#3a1f43">${t}</text>
+    <text x="60" y="18" text-anchor="middle" font-family="var(--font-display)" font-size="11" font-weight="700" fill="#3a1f43">${topicOf(t).lid || t}</text>
   </svg>`;
 }
 const logo = `<svg viewBox="0 0 40 40" aria-hidden="true"><polygon points="2,12 10,20 2,28" style="fill:var(--berry)"/><polygon points="38,12 30,20 38,28" style="fill:var(--berry)"/><circle cx="20" cy="20" r="12" style="fill:var(--berry)"/><path d="M12 16 Q20 10 28 16" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8"/><circle cx="16" cy="22" r="2" fill="#fff" opacity="0.8"/></svg>`;
@@ -103,24 +110,32 @@ function render() {
   if (VIEW.name === 'result') return renderResult();
   if (VIEW.name === 'report') return renderReport();
   if (VIEW.name === 'words') return renderWords();
+  if (VIEW.name === 'notes') return renderNotes();
 }
 
 function renderHome() {
-  const frag = h('div');
-  const mistakes = ORIG.filter(isMistake).length;
-  frag.append(h('section', { class: 'hello' }, `<h1>Grade 4 Maths: End of Semester 1</h1><p>Fill every jar with candy before the test!</p>`));
+  const frag = h('div'); const subj = SUBJ();
+  const inSubj = (q) => subjOf(q.t) === subj;
+  const mistakes = ORIG.filter((q) => inSubj(q) && isMistake(q)).length;
+  const tabs = h('div', { class: 'subj-tabs', role: 'tablist' });
+  ['math', 'sci'].forEach((k) => tabs.append(h('button', { class: 'subj-tab' + (k === subj ? ' on' : ''), role: 'tab', 'aria-selected': k === subj ? 'true' : 'false', onclick: () => { DATA.subj = k; save(); render(); } }, SUBJ_NAME[k])));
+  frag.append(tabs);
+  frag.append(h('section', { class: 'hello' }, `<h1>Grade 4 ${SUBJ_NAME[subj]}: End of Semester 1</h1><p>Fill every jar with candy before the test!</p>`));
   const jars = h('section', { class: 'jars' });
-  TOPICS.forEach((tp) => {
-    const m = mastery(tp.id); const n = tp.id === 6 ? WORDS.length : ORIG.filter((q) => q.t === tp.id).length;
-    const c = h('div', { class: 'jar' }, `${jarSvg(tp.id, m)}<h3>${tp.name}</h3><div class="meta">${tp.sheet} · ${Math.round(m * n)}/${n} ${tp.id === 6 ? 'known' : 'solved'}</div>`);
+  TOPICS.filter((tp) => (tp.subj || 'math') === subj).sort((a, b) => (a.words ? 1 : 0) - (b.words ? 1 : 0) || a.id - b.id).forEach((tp) => {
+    const m = mastery(tp.id); const n = tp.words ? wordsOf(subj).length : ORIG.filter((q) => q.t === tp.id).length;
+    const c = h('div', { class: 'jar' }, `${jarSvg(tp.id, m)}<h3>${tp.name}</h3><div class="meta">${tp.sheet} · ${Math.round(m * n)}/${n} ${tp.words ? 'known' : 'solved'}</div>`);
     const acts = h('div', { class: 'acts' });
-    if (tp.id === 6) acts.append(h('button', { class: 'btn', onclick: () => go({ name: 'words' }) }, 'Word list'), h('button', { class: 'btn soft', onclick: startWords }, 'Quiz'));
-    else acts.append(h('button', { class: 'btn', onclick: () => startWorksheet(tp.id) }, 'Worksheet'), h('button', { class: 'btn soft', onclick: () => startPractice(tp.id) }, 'Practice'));
+    if (tp.words) acts.append(h('button', { class: 'btn', onclick: () => go({ name: 'words', subj }) }, 'Word list'), h('button', { class: 'btn soft', onclick: () => startWords(subj) }, 'Quiz'));
+    else {
+      acts.append(h('button', { class: 'btn', onclick: () => startWorksheet(tp.id) }, 'Worksheet'), h('button', { class: 'btn soft', onclick: () => startPractice(tp.id) }, 'Practice'));
+      if (typeof SCI_NOTES !== 'undefined' && SCI_NOTES[tp.id]) acts.append(h('button', { class: 'btn soft', onclick: () => go({ name: 'notes', t: tp.id }) }, 'Notes'));
+    }
     c.append(acts); jars.append(c);
   });
   frag.append(jars);
   const big = h('section', { class: 'big-acts' });
-  const mt = h('button', { class: 'action', onclick: startMock }, `<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="31" r="21" style="fill:var(--grape)"/><circle cx="28" cy="31" r="16" style="fill:var(--card)"/><rect x="25" y="4" width="6" height="8" rx="2" style="fill:var(--grape)"/><path d="M28 31 L28 20 M28 31 L36 35" style="stroke:var(--ink)" stroke-width="3" stroke-linecap="round"/></svg><div><h3>Mock test</h3><p>20 mixed questions, timed, no hints</p></div>`);
+  const mt = h('button', { class: 'action', onclick: startMock }, `<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="31" r="21" style="fill:var(--grape)"/><circle cx="28" cy="31" r="16" style="fill:var(--card)"/><rect x="25" y="4" width="6" height="8" rx="2" style="fill:var(--grape)"/><path d="M28 31 L28 20 M28 31 L36 35" style="stroke:var(--ink)" stroke-width="3" stroke-linecap="round"/></svg><div><h3>${SUBJ_NAME[subj]} mock test</h3><p>About 20 mixed questions, timed, no hints</p></div>`);
   const fx = h('button', { class: 'action', onclick: startMistakes, disabled: false }, `<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24" style="fill:var(--berry)"/><path d="M17 29 L25 37 L40 20" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div><h3>Fix my mistakes</h3><p>${mistakes ? `${mistakes} worksheet question${mistakes > 1 ? 's' : ''} to fix, plus practice on weak spots` : 'Nothing left to fix. Practise your weakest skills'}</p></div>`);
   big.append(mt, fx);
   frag.append(big);
@@ -135,31 +150,32 @@ function startWorksheet(t) {
   const qs = ORIG.filter((q) => q.t === t);
   const todo = qs.filter((q) => !(DATA.q[q.id] && DATA.q[q.id].last === 1));
   const list = todo.length ? todo.concat(qs.filter((q) => !todo.includes(q))) : qs.slice();
-  startQuiz({ title: TOPICS[t - 1].name, mode: 'learn', qs: list.slice(0, todo.length || list.length) });
+  startQuiz({ title: topicOf(t).name, mode: 'learn', qs: list.slice(0, todo.length || list.length) });
 }
 function startPractice(t) {
   const w = weakSkills(t); const qs = []; for (let i = 0; i < 10; i++) qs.push(genFor(pickWeighted(w)));
-  startQuiz({ title: TOPICS[t - 1].name + ': practice', mode: 'learn', qs });
+  startQuiz({ title: topicOf(t).name + ': practice', mode: 'learn', qs });
 }
 function startMistakes() {
-  const m = R.shuffle(ORIG.filter(isMistake)).slice(0, 15);
+  const m = R.shuffle(ORIG.filter((q) => subjOf(q.t) === SUBJ() && isMistake(q))).slice(0, 15);
   const w = weakSkills().sort((a, b) => b.w - a.w).slice(0, 6); const g = []; for (let i = 0; i < (m.length ? 5 : 12); i++) g.push(genFor(pickWeighted(w)));
   startQuiz({ title: 'Fix my mistakes', mode: 'learn', qs: m.concat(g) });
 }
 function startMock() {
-  const qs = [];
-  TOPICS.filter((tp) => tp.id !== 6).forEach((tp) => {
-    R.shuffle(ORIG.filter((q) => q.t === tp.id && q.k !== 'grid' && q.k !== 'dots')).slice(0, 2).forEach((q) => qs.push(q));
-    const sk = Object.keys(SKILLS).filter((s) => SKILLS[s].t === tp.id); R.shuffle(sk).slice(0, 2).forEach((s) => qs.push(genFor(s)));
+  const qs = []; const tps = TOPICS.filter((tp) => !tp.words && (tp.subj || 'math') === SUBJ()); const per = tps.length >= 5 ? [2, 2] : [4, 3];
+  tps.forEach((tp) => {
+    R.shuffle(ORIG.filter((q) => q.t === tp.id && q.k !== 'grid' && q.k !== 'dots')).slice(0, per[0]).forEach((q) => qs.push(q));
+    const sk = Object.keys(SKILLS).filter((s) => SKILLS[s].t === tp.id && GEN[s]); R.shuffle(sk).slice(0, per[1]).forEach((s) => qs.push(genFor(s)));
   });
-  startQuiz({ title: 'Mock test', mode: 'test', qs: R.shuffle(qs) });
+  startQuiz({ title: SUBJ_NAME[SUBJ()] + ' mock test', mode: 'test', qs: R.shuffle(qs) });
 }
-function startWords() {
-  const items = WORDS.map((w) => { const st = DATA.w[w.id]; const base = w.cat === 'cmd' || w.cat === 'op' ? 2 : 1; const k = !st ? 1.5 : st.last === 0 ? 3 : 0.4; return { s: w.id, w: base * k * (1 + (DATA.look[w.id] || 0) * 0.3) }; });
+function startWords(subj = 'math') {
+  const pool = wordsOf(subj);
+  const items = pool.map((w) => { const st = DATA.w[w.id]; const base = w.cat === 'cmd' || w.cat === 'op' ? 2 : 1; const k = !st ? 1.5 : st.last === 0 ? 3 : 0.4; return { s: w.id, w: base * k * (1 + (DATA.look[w.id] || 0) * 0.3) }; });
   const qs = []; const used = new Set();
   while (qs.length < 7) { const id = pickWeighted(items); if (used.has(id)) continue; used.add(id); qs.push(wordQuestion(WORD_BY_ID[id])); }
-  for (let i = 0; i < 3; i++) qs.push(clozeQuestion());
-  startQuiz({ title: 'Maths words', mode: 'learn', qs: R.shuffle(qs) });
+  for (let i = 0; i < 3; i++) qs.push(clozeQuestion(subj));
+  startQuiz({ title: SUBJ_NAME[subj] + ' words', mode: 'learn', qs: R.shuffle(qs) });
 }
 let TIMER = null;
 function startQuiz(s) {
@@ -172,7 +188,7 @@ function newQ() {
   s.cur = { q, tries: 0, done: false, hint: false, fb: null, resp: emptyResp(q), focus: 0, sel: null };
 }
 function emptyResp(q) {
-  switch (q.k) { case 'in': return q.parts.map(() => ''); case 'mc': return null; case 'multi': return []; case 'rows': return q.rows.map((r) => r.a.map(() => null)); case 'order': return []; case 'match': return q.L.map(() => null); case 'grid': return new Set(); case 'dots': return []; }
+  switch (q.k) { case 'in': case 'txt': return q.parts.map(() => ''); case 'mc': return null; case 'multi': return []; case 'rows': return q.rows.map((r) => r.a.map(() => null)); case 'order': return []; case 'match': return q.L.map(() => null); case 'grid': return new Set(); case 'dots': return []; }
 }
 
 // ---------- quiz rendering ----------
@@ -190,7 +206,7 @@ function renderQuiz() {
   chips.append(h('span', { class: 'chip' }, q.gen ? (q.src && q.src !== 'Practice' ? q.src + ' · new numbers' : 'New practice question') : q.src));
   if (!q.gen && s.mode === 'learn' && isMistake(q)) chips.append(h('span', { class: 'chip warn' }, (DATA.q[q.id] ? 'Missed last time' : 'Missed on paper')));
   card.append(chips);
-  const gl = (t) => fmtText(q.t === 6 ? t : glossify(t));
+  const gl = (t) => fmtText(isWordT(q.t) ? t : glossify(t, subjOf(q.t)));
   card.append(h('div', { class: 'prompt' }, gl(q.q)));
   if (q.fig) card.append(h('div', { class: 'figwrap' }, fmtText(q.fig)));
   card.append(widget(q, c, gl));
@@ -199,7 +215,7 @@ function renderQuiz() {
   const acts = h('div', { class: 'qacts' });
   if (!c.done) {
     acts.append(h('button', { class: 'btn big', id: 'check', onclick: check }, s.mode === 'test' ? 'Submit' : 'Check'));
-    if (s.mode === 'learn' && q.t !== 6 && !c.read) acts.append(h('button', { class: 'btn soft', onclick: () => { c.read = true; renderQuiz(); } }, 'Đề hỏi gì?'));
+    if (s.mode === 'learn' && !isWordT(q.t) && !c.read) acts.append(h('button', { class: 'btn soft', onclick: () => { c.read = true; renderQuiz(); } }, 'Đề hỏi gì?'));
     if (s.mode === 'learn' && !c.hint) acts.append(h('button', { class: 'btn soft', onclick: () => { c.hint = true; c.fb = hintBox(q); renderQuiz(); } }, 'Gợi ý'));
   } else acts.append(h('button', { class: 'btn big', id: 'next', onclick: next }, s.i + 1 < s.qs.length ? 'Next' : 'Finish'));
   if (s.mode === 'learn' && !c.done) acts.append(h('button', { class: 'link', onclick: () => giveUp() }, 'Show answer'));
@@ -238,6 +254,22 @@ function widget(q, c, gl = fmtText) {
         box.append(row);
       });
       if (!lock) box.append(keypad(q, c));
+      return box;
+    }
+    case 'txt': {
+      const box = h('div', { class: 'parts' });
+      q.parts.forEach((p, i) => {
+        const row = h('div', { class: 'part' });
+        if (p.pre) row.append(h('span', {}, gl(p.pre)));
+        const inp = h('input', { class: cls('ans txt' + (i === c.focus && !lock ? ' on' : '')), value: c.resp[i], 'aria-label': `Answer ${i + 1}`, autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', inputmode: 'text', readonly: lock || false, size: Math.max(12, String(c.resp[i]).length + 2) });
+        inp.addEventListener('input', () => { c.resp[i] = inp.value; });
+        inp.addEventListener('focus', () => { c.focus = i; });
+        inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (i + 1 < q.parts.length) document.querySelectorAll('.ans')[i + 1].focus(); else check(); } });
+        row.append(inp);
+        if (p.post) row.append(h('span', {}, gl(p.post)));
+        box.append(row);
+      });
+      if (!lock) box.append(h('div', { class: 'count' }, 'Type the English word. Capital letters do not matter.'));
       return box;
     }
     case 'mc': case 'multi': {
@@ -282,7 +314,7 @@ function widget(q, c, gl = fmtText) {
       const box = h('div', { class: 'rowq' });
       const slots = h('div', { class: cls('order-slots') });
       c.resp.forEach((it, i) => slots.append(h('button', { class: 'ochip', disabled: lock || false, onclick: () => { c.resp.splice(i, 1); renderQuiz(); } }, it)));
-      if (!c.resp.length) slots.append(h('span', { class: 'count' }, 'Tap the numbers from smallest to largest'));
+      if (!c.resp.length) slots.append(h('span', { class: 'count' }, q.ohint || 'Tap the numbers from smallest to largest'));
       const pool = h('div', { class: 'order-pool' });
       if (!lock) (c.pool || (c.pool = R.shuffle(q.items))).forEach((it) => { if (!c.resp.includes(it)) pool.append(h('button', { class: 'ochip', onclick: () => { c.resp.push(it); renderQuiz(); } }, it)); });
       box.append(slots, pool);
@@ -356,10 +388,10 @@ function keypad(q, c) {
 }
 
 // ---------- checking ----------
-function respFor(q, c) { return q.k === 'in' ? c.resp.map((x) => String(x || '')) : c.resp; }
+function respFor(q, c) { return q.k === 'in' || q.k === 'txt' ? c.resp.map((x) => String(x || '')) : c.resp; }
 function incomplete(q, c) {
   switch (q.k) {
-    case 'in': return c.resp.some((x) => !String(x || '').trim());
+    case 'in': case 'txt': return c.resp.some((x) => !String(x || '').trim());
     case 'mc': return c.resp == null;
     case 'multi': return q.exact ? c.resp.length !== q.exact : c.resp.length === 0;
     case 'rows': return c.resp.some((r) => r.some((x) => x == null));
@@ -389,7 +421,8 @@ function check() {
     if (c.tries === 1) { record(q, true); s.candies++; updateCandy(true); burst(); }
     s.results.push(c.tries === 1);
     c.done = true; c.markResult = true; c.reveal = true;
-    c.fb = h('div', { class: 'feedback ok' }, `<div>${R.pick(['Sweet! That is right.', 'Correct! One more candy for the jar.', 'Yes! Well done.', 'Perfect!'])}${c.tries > 1 ? ' (on the second try)' : ''}</div>${q.why ? `<div class="why">${fmtText(q.why)}</div>` : ''}`);
+    const spell = q.k === 'txt' ? q.parts.map((p, i) => (txtMatch(c.resp[i], p.acc) === 'near' ? p.ex : null)).filter(Boolean) : [];
+    c.fb = h('div', { class: 'feedback ok' }, `<div>${R.pick(['Sweet! That is right.', 'Correct! One more candy for the jar.', 'Yes! Well done.', 'Perfect!'])}${c.tries > 1 ? ' (on the second try)' : ''}</div>${spell.length ? `<div class="why"><b>Check the spelling:</b> ${spell.join(', ')}</div>` : ''}${q.why ? `<div class="why">${fmtText(q.why)}</div>` : ''}`);
   } else if (c.tries === 1) {
     record(q, false);
     c.fb = h('div', { class: 'feedback no' }, `<div>Not quite. Have another go.</div><div class="why"><b>Gợi ý:</b> ${SKILLS[q.sk].vi}</div>`); c.hint = true;
@@ -401,8 +434,8 @@ function reveal() {
   const s = VIEW.s, c = s.cur, q = c.q;
   s.results.push(false);
   c.done = true; c.markResult = true; c.reveal = true;
-  const ex = exampleResp(q); c.resp = q.k === 'in' ? ex.slice() : ex;
-  const extra = q.k === 'in' && q.check ? ' This is one possible answer.' : q.k === 'grid' || q.k === 'dots' ? ' This is one way to do it.' : '';
+  const ex = exampleResp(q); c.resp = q.k === 'in' || q.k === 'txt' ? ex.slice() : ex;
+  const extra = (q.k === 'in' && (q.check || q.oneOf)) || (q.k === 'txt' && q.parts.some((p) => p.acc.length > 3)) ? ' This is one possible answer.' : q.k === 'grid' || q.k === 'dots' ? ' This is one way to do it.' : '';
   c.fb = h('div', { class: 'feedback no' }, `<div>Here is the answer.${extra}</div>${q.why ? `<div class="why">${fmtText(q.why)}</div>` : ''}<div class="why"><b>Gợi ý:</b> ${SKILLS[q.sk].vi}</div>`);
   renderQuiz();
 }
@@ -445,17 +478,21 @@ function renderReport() {
   box.append(h('h1', {}, 'Progress report'));
   const tests = DATA.tests.slice(-5).reverse();
   if (tests.length) box.append(h('div', { class: 'rt' }, `<h3>Mock tests</h3>${tests.map((t) => `<div class="sk"><span>${new Date(t.d).toLocaleDateString()} · ${Math.floor(t.secs / 60)} min</span><span class="meter"><i style="width:${(t.score / t.total) * 100}%;background:var(--grape)"></i></span><span class="n">${t.score}/${t.total}</span></div>`).join('')}`));
-  TOPICS.filter((tp) => tp.id !== 6).forEach((tp) => {
-    const rows = Object.keys(SKILLS).filter((s) => SKILLS[s].t === tp.id).map((s) => {
-      const k = DATA.sk[s] || { r: 0, w: 0 }; const tot = k.r + k.w; const pct = tot ? Math.round((k.r / tot) * 100) : null;
-      return `<div class="sk"><span>${SKILLS[s].en}</span><span class="meter"><i style="width:${pct || 0}%;background:${TC[tp.id]}"></i></span><span class="n">${pct == null ? 'not yet' : pct + '%'}</span></div>`;
-    }).join('');
-    const left = ORIG.filter((q) => q.t === tp.id && isMistake(q)).map((q) => q.src.replace(/^.*· /, '')).join(', ');
-    box.append(h('div', { class: 'rt' }, `<h3>${tp.sheet}: ${tp.name} · ${Math.round(mastery(tp.id) * 100)}% solved</h3>${rows}${left ? `<p class="count">Still to fix: ${left}</p>` : ''}`));
+  ['math', 'sci'].forEach((subj) => {
+    box.append(h('h2', { class: 'subj-head' }, SUBJ_NAME[subj]));
+    TOPICS.filter((tp) => !tp.words && (tp.subj || 'math') === subj).forEach((tp) => {
+      const rows = Object.keys(SKILLS).filter((s) => SKILLS[s].t === tp.id).map((s) => {
+        const k = DATA.sk[s] || { r: 0, w: 0 }; const tot = k.r + k.w; const pct = tot ? Math.round((k.r / tot) * 100) : null;
+        return `<div class="sk"><span>${SKILLS[s].en}</span><span class="meter"><i style="width:${pct || 0}%;background:${TC[tp.id]}"></i></span><span class="n">${pct == null ? 'not yet' : pct + '%'}</span></div>`;
+      }).join('');
+      const left = ORIG.filter((q) => q.t === tp.id && isMistake(q)).map((q) => q.src.replace(/^.*· /, '')).join(', ');
+      box.append(h('div', { class: 'rt' }, `<h3>${tp.sheet}: ${tp.name} · ${Math.round(mastery(tp.id) * 100)}% solved</h3>${rows}${left ? `<p class="count">Still to fix: ${left}</p>` : ''}`));
+    });
+    const ws = wordsOf(subj);
+    const looked = Object.entries(DATA.look || {}).filter(([id]) => WORD_BY_ID[id] && (WORD_BY_ID[id].subj || 'math') === subj).sort((a, b) => b[1] - a[1]).slice(0, 12);
+    const weakW = ws.filter((w) => DATA.w[w.id] && DATA.w[w.id].last === 0).map((w) => w.en);
+    box.append(h('div', { class: 'rt' }, `<h3>${SUBJ_NAME[subj]} words · ${ws.filter((w) => DATA.w[w.id] && DATA.w[w.id].last === 1).length}/${ws.length} known</h3>${looked.length ? `<p>Most looked-up: ${looked.map(([id, n]) => `${WORD_BY_ID[id].en} (${n})`).join(', ')}</p>` : '<p class="count">No words looked up yet.</p>'}${weakW.length ? `<p class="count">Still confused: ${weakW.join(', ')}</p>` : ''}`));
   });
-  const looked = Object.entries(DATA.look || {}).sort((a, b) => b[1] - a[1]).slice(0, 12).filter(([id]) => WORD_BY_ID[id]);
-  const weakW = WORDS.filter((w) => DATA.w[w.id] && DATA.w[w.id].last === 0).map((w) => w.en);
-  box.append(h('div', { class: 'rt' }, `<h3>Maths words · ${WORDS.filter((w) => DATA.w[w.id] && DATA.w[w.id].last === 1).length}/${WORDS.length} known</h3>${looked.length ? `<p>Most looked-up: ${looked.map(([id, n]) => `${WORD_BY_ID[id].en} (${n})`).join(', ')}</p>` : '<p class="count">No words looked up yet.</p>'}${weakW.length ? `<p class="count">Still confused: ${weakW.join(', ')}</p>` : ''}`));
   const reset = h('div', { class: 'foot' });
   const rb = h('button', { class: 'link' }, 'Start over (clear all progress)');
   rb.onclick = () => { if (rb.dataset.armed) { DATA = blank(); save(); go({ name: 'home' }); } else { rb.dataset.armed = '1'; rb.textContent = 'Tap again to clear everything'; } };
@@ -479,16 +516,29 @@ document.addEventListener('click', (e) => { const g = e.target.closest && e.targ
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeWord(); if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('gw')) { e.preventDefault(); openWord(e.target.dataset.w); } });
 
 function renderWords() {
+  const subj = VIEW.subj || 'math'; const ws = wordsOf(subj);
   const box = h('section', { class: 'report' });
-  box.append(h('div', { class: 'hello' }, `<h1>Maths words</h1><p>Chạm vào một từ để xem nghĩa và hình minh họa.</p>`));
-  const qa = h('div', { class: 'qacts' }); qa.append(h('button', { class: 'btn big', onclick: startWords }, 'Word quiz')); box.append(qa);
+  box.append(h('div', { class: 'hello' }, `<h1>${SUBJ_NAME[subj]} words</h1><p>Chạm vào một từ để xem nghĩa và hình minh họa.</p>`));
+  const qa = h('div', { class: 'qacts' }); qa.append(h('button', { class: 'btn big', onclick: () => startWords(subj) }, 'Word quiz')); box.append(qa);
   Object.keys(CAT_VI).forEach((cat) => {
-    const list = WORDS.filter((w) => w.cat === cat); const sec = h('div', { class: 'rt' });
+    const list = ws.filter((w) => w.cat === cat); if (!list.length) return; const sec = h('div', { class: 'rt' });
     sec.append(h('h3', {}, CAT_VI[cat]));
     const wrap = h('div', { class: 'wordchips' });
     list.forEach((w) => { const st = DATA.w[w.id]; const cls = st ? (st.last === 1 ? ' known' : ' weak') : ''; wrap.append(h('button', { class: 'wchip' + cls, onclick: () => openWord(w.id) }, w.en)); });
     sec.append(wrap); box.append(sec);
   });
+  shell(box);
+}
+// ---------- science exam notes ----------
+function renderNotes() {
+  const t = VIEW.t; const tp = topicOf(t); const n = SCI_NOTES[t];
+  const box = h('section', { class: 'report' });
+  box.append(h('div', { class: 'hello' }, `<h1>${tp.sheet}: ${tp.name}</h1><p>${n.src}. Chạm vào chữ gạch chân để xem nghĩa.</p>`));
+  n.cards.forEach((c) => box.append(h('div', { class: 'rt note' }, `<h3>${c.h}</h3>${c.p.map((x) => `<p>${glossify(x, 'sci')}</p>`).join('')}<p class="note-vi" lang="vi">${c.vi}</p>`)));
+  const qa = h('div', { class: 'qacts' });
+  qa.append(h('button', { class: 'btn big', onclick: () => startWorksheet(t) }, 'Worksheet'), h('button', { class: 'btn big soft', onclick: () => startPractice(t) }, 'Practice'));
+  box.append(qa);
+  const back = h('div', { class: 'foot' }); back.append(h('button', { class: 'link', onclick: () => go({ name: 'home' }) }, 'Back to jars')); box.append(back);
   shell(box);
 }
 

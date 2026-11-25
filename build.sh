@@ -15,7 +15,7 @@ mkdir -p "$(dirname "$OUT")"
   if [ "$MODE" = "public" ]; then printf 'body{margin:0}img{max-width:100%%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}\n'; fi
   cat src/style.css; printf '</style>\n'
   printf '<div id="app"></div>\n<script>\n'
-  for f in src/logic.js $PAPER src/words.js src/vi.js src/gen.js src/app.js; do cat "$f"; printf '\n'; done
+  for f in src/logic.js $PAPER src/words.js src/vi.js src/gen.js src/science.js src/app.js; do cat "$f"; printf '\n'; done
   printf '</script>\n'
 } > "$OUT"
 echo "built $OUT"

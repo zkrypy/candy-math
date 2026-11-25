@@ -3,7 +3,7 @@ const ctx={console};vm.createContext(ctx);
 const src=['logic','words','vi'].map(f=>fs.readFileSync('src/'+f+'.js','utf8').replace(/if \(typeof module[^\n]*\n?/g,'')).join('\n')+'\n;this.out={ORIG,WORDS,VI,glossify,wordQuestion,clozeQuestion,grade,exampleResp,howTo,WORD_RE};';
 vm.runInContext(src,ctx);const L=ctx.out;let bad=0;
 const ids=new Set();L.WORDS.forEach(w=>{if(ids.has(w.id)){bad++;console.log('dup word',w.id)}ids.add(w.id); if(w.pic) w.pic();});
-const miss=L.ORIG.filter(q=>!L.VI[q.id]).map(q=>q.id);const extra=Object.keys(L.VI).filter(k=>!L.ORIG.find(q=>q.id===k));
+const miss=L.ORIG.filter(q=>!L.VI[q.id]&&!q.vi).map(q=>q.id);const extra=Object.keys(L.VI).filter(k=>!L.ORIG.find(q=>q.id===k));
 if(miss.length||extra.length){bad++;console.log('VI missing',miss,'extra',extra)}
 let wrapped=0;const hits={};
 L.ORIG.forEach(q=>{const g=L.glossify(q.q);(g.match(/data-w="(\w+)"/g)||[]).forEach(m=>{wrapped++;const id=m.slice(8,-1);hits[id]=(hits[id]||0)+1});

@@ -48,11 +48,11 @@ function fv(s) { const p = parse(s); return p ? p.v : NaN; }
 
 // ----- topics and skills -----
 const TOPICS = [
-  { id: 1, name: 'Decimals & Rounding', sheet: 'Revision 1', candy: 'Lemon drops', color: 'lemon' },
-  { id: 2, name: 'Sequences & Special Numbers', sheet: 'Revision 2', candy: 'Mint swirls', color: 'mint' },
-  { id: 3, name: 'Adding, Subtracting & Averages', sheet: 'Revision 3', candy: 'Strawberry chews', color: 'berry' },
-  { id: 4, name: '2D & 3D Shapes, Symmetry', sheet: 'Revision 4', candy: 'Grape gummies', color: 'grape' },
-  { id: 5, name: 'Fractions, Decimals & Percentages', sheet: 'Revision 5', candy: 'Peach rings', color: 'peach' },
+  { id: 1, name: 'Decimals & Rounding', sheet: 'Revision 1', candy: 'Lemon drops', color: 'lemon', subj: 'math' },
+  { id: 2, name: 'Sequences & Special Numbers', sheet: 'Revision 2', candy: 'Mint swirls', color: 'mint', subj: 'math' },
+  { id: 3, name: 'Adding, Subtracting & Averages', sheet: 'Revision 3', candy: 'Strawberry chews', color: 'berry', subj: 'math' },
+  { id: 4, name: '2D & 3D Shapes, Symmetry', sheet: 'Revision 4', candy: 'Grape gummies', color: 'grape', subj: 'math' },
+  { id: 5, name: 'Fractions, Decimals & Percentages', sheet: 'Revision 5', candy: 'Peach rings', color: 'peach', subj: 'math' },
 ];
 
 const SKILLS = {
@@ -756,6 +756,25 @@ const GEN = {
 };
 const SKILL_GEN = Object.keys(GEN);
 
+// ===================== TYPED WORD ANSWERS (science) =====================
+// txt: parts = [{pre, post, acc: [accepted answers], ex}]; small spelling slips are accepted
+const normTxt = (s) => String(s == null ? '' : s).toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9°.\- ]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/^(a|an|the) /, '');
+function lev(a, b) {
+  const d = []; for (let i = 0; i <= a.length; i++) d[i] = [i];
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+// 'exact' | 'near' (spelling slip) | false
+function txtMatch(raw, acc) {
+  const r = normTxt(raw); if (!r) return false;
+  if (acc.some((x) => normTxt(x) === r)) return 'exact';
+  return acc.some((x) => { const n = normTxt(x); const tol = n.length >= 8 ? 2 : n.length >= 5 ? 1 : 0; return tol && lev(r, n) <= tol; }) ? 'near' : false;
+}
+function txtq(o, parts) { return Object.assign({ k: 'txt', parts: parts.map(([pre, acc, post]) => ({ pre: pre || '', post: post || '', acc: [].concat(acc), ex: [].concat(acc)[0] })) }, o); }
+// order with a fixed answer (items given in the right order)
+const ordx = (o, items, hint) => Object.assign({ k: 'order', items: items.slice(), a: items.slice(), ohint: hint }, o);
+
 // ===================== GRADING =====================
 // response shapes: in: [strings]; mc: idx; multi: [idx]; rows: [[choice]]; order: [items]; match: [rightIdx]; grid: Set of "r,c" (added); dots: [idx]
 function grade(q, resp) {
@@ -767,6 +786,7 @@ function grade(q, resp) {
         if (q.check) return !!q.check(ps);
         return q.parts.every((pt, i) => pt.fn(ps[i]));
       }
+      case 'txt': return q.parts.every((p, i) => !!txtMatch(resp[i], p.acc));
       case 'mc': return resp === q.a;
       case 'multi': { const s = resp.slice().sort((a, b) => a - b); return s.length === q.a.length && s.every((x, i) => x === q.a[i]); }
       case 'rows': if (q.check) return !!q.check(resp); return q.rows.every((r, i) => r.a.every((x, j) => resp[i] && resp[i][j] === x));
@@ -786,6 +806,7 @@ function grade(q, resp) {
 function exampleResp(q) {
   switch (q.k) {
     case 'in': return q.parts.map((p) => p.ex);
+    case 'txt': return q.parts.map((p) => p.ex);
     case 'mc': return q.a;
     case 'multi': return q.a.slice();
     case 'rows': return q.rows.map((r) => r.a.slice());
@@ -796,4 +817,4 @@ function exampleResp(q) {
   }
 }
 
-if (typeof module !== 'undefined') module.exports = { ORIG, GEN, SKILL_GEN, SKILLS, TOPICS, grade, exampleResp, parse };
+if (typeof module !== 'undefined') module.exports = { ORIG, GEN, SKILL_GEN, SKILLS, TOPICS, grade, exampleResp, parse, txtMatch };

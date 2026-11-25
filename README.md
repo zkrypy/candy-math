@@ -1,6 +1,9 @@
 # Candy Math
 
-A Grade 4 maths revision app (end of semester 1): decimals and rounding, sequences and special numbers, adding/subtracting and averages, 2D/3D shapes and symmetry, fractions/decimals/percentages, plus a maths-vocabulary jar.
+A Grade 4 revision app (end of semester 1) with two subjects:
+
+- **Maths:** decimals and rounding, sequences and special numbers, adding/subtracting and averages, 2D/3D shapes and symmetry, fractions/decimals/percentages, plus a maths-vocabulary jar.
+- **Science:** Unit 1 Plants, Unit 2 Sound, Unit 3 States & Properties of Matter, each with the review-sheet questions, practice and exam notes, plus a science-vocabulary jar.
 
 **Play:** https://zkrypy.github.io/candy-math/
 
@@ -12,5 +15,5 @@ A Grade 4 maths revision app (end of semester 1): decimals and rounding, sequenc
 
 ```sh
 ./build.sh public   # docs/index.html (GitHub Pages)
-node test.js && node test2.js && node test3.js
+node test.js && node test2.js && node test3.js && node test4.js
 ```

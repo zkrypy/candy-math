@@ -166,10 +166,11 @@ const VI = {
 function howTo(q) {
   switch (q.k) {
     case 'in': return q.parts.length > 1 ? `Điền ${q.parts.length} ô. Gõ số thường (12), số âm (−4), số thập phân (3.5), phân số (3/4) hoặc hỗn số (2 1/3).` : 'Gõ một số vào ô. Phân số gõ dạng 3/4, hỗn số gõ dạng 2 1/3.';
+    case 'txt': return q.parts.length > 1 ? `Gõ ${q.parts.length} từ tiếng Anh vào ${q.parts.length} ô. Không cần viết hoa.` : 'Gõ một từ tiếng Anh vào ô. Không cần viết hoa.';
     case 'mc': return 'Chọn MỘT đáp án.';
     case 'multi': return q.exact ? `Chọn đúng ${q.exact} đáp án.` : 'Chọn TẤT CẢ đáp án đúng (có thể nhiều hơn 1).';
     case 'rows': return 'Ở mỗi dòng, bấm chọn một ô.';
-    case 'order': return 'Bấm các số theo thứ tự, số bé nhất trước. Bấm lại vào số đã chọn để bỏ.';
+    case 'order': if (q.ohint) return 'Bấm lần lượt theo đúng thứ tự. Bấm lại vào mục đã chọn để bỏ.'; return 'Bấm các số theo thứ tự, số bé nhất trước. Bấm lại vào số đã chọn để bỏ.';
     case 'match': return 'Bấm 1 ô bên trái rồi bấm ô tương ứng bên phải.';
     case 'grid': return `Bấm vào ô để tô màu. Tô đúng ${q.need} ô.`;
     case 'dots': return `Bấm chọn ${q.need} điểm. Bấm lại để bỏ chọn.`;
